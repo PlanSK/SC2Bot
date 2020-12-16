@@ -10,5 +10,5 @@ sc2.run_game(
         Computer(sc2.Race.Terran,
         sc2.Difficulty.Hard)
     ],
-    realtime=True,
+    realtime=False,
 )
