@@ -18,14 +18,22 @@ class MiningManager(BaseManager):
         sorted_minerals = [unsorted_minerals[dist] for dist in sorted(unsorted_minerals)]
 
         self.mineral_wrappers = []
-        for get_crystal in sorted_minerals:
-            self.mineral_wrappers.append(Mineral(unit = get_crystal))
+        for mineral_unit in sorted_minerals:
+            self.mineral_wrappers.append(Mineral(unit = mineral_unit))
         
         self.scv_wrappers = []
-        for get_scv in workers:
-            self.scv_wrappers.append(SCV(unit = get_scv))
+        for scv_unit in workers:
+            self.scv_wrappers.append(SCV(unit = scv_unit))
 
 
     async def organize_mining(self):
+        for scv in self.scv_wrappers:
+            for mineral in self.mineral_wrappers:
+                if len(mineral.get_workers()) <= 2:
+                    mineral.add_worker(scv)
+                    scv.mine(mineral)
+                    break
+
+
         pass
 

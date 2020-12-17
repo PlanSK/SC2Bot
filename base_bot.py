@@ -1,3 +1,4 @@
+import sc2
 from sc2.bot_ai import BotAI
 from managers.mining_manager import MiningManager
 
@@ -12,18 +13,19 @@ class BaseBot(BotAI):
         """
         Вызывается единственный раз перед запуском on_step.
         """
+        for worker in self.workers:
+            worker.stop()
+
         mine_expansion = self.expansion_locations_dict[self.start_location]
         self.mining_mgr = MiningManager(mine_expansion, self.start_location, self.workers)
-        pass
-
+        await self.mining_mgr.organize_mining()
 
     async def on_step(self, iteration):
         """
         Вызывается на каждом шаге игры.
         :param iteration:
         """
-        # print(self.workers.gathering.amount)
-        pass
+        self.draw_sphere(self.start_location, 10)
 
     async def on_end(self, game_result):
         """
@@ -85,3 +87,24 @@ class BaseBot(BotAI):
         Вражеский юнит покинул зону видимости.
         """
         pass
+
+    def get_xyz(self, point):
+        if isinstance(point, sc2.position.Point3):
+            x, y, z = point
+        elif isinstance(point, sc2.position.Point2):
+            x, y, z = (*point, self.get_terrain_z_height(point))
+        else:
+            raise NotImplementedError("get_xyz not implemented for this type")
+
+        return (x, y, z)
+
+    def draw_sphere(self, position, radius=1, color=None):
+        x, y, z = self.get_xyz(position)
+        position = sc2.position.Point3((x, y, z))
+        color = (255, 255, 255) if not color else color
+
+        self.client.debug_sphere_out(
+            p=position,
+            r=radius,
+            color=color
+        )

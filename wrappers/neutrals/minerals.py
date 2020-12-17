@@ -6,14 +6,15 @@ class Mineral(BaseWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         capacity = self.unit.mineral_contents
+        self.workers = []
+        log.info(f'Tag {self} contains {capacity}')
 
-        log.info(f'Tag {self.unit.tag} contains {capacity}')
+    def get_workers(self):
+        return self.workers
 
-    def workers_list(self):
-        pass
+    def add_worker(self, worker):
+        log.info(f"Added worker {worker} to list")
+        self.workers.append(worker)
 
-    def add_worker(self):
-        pass
-
-    def remove_worker(self):
-        pass
+    def remove_worker(self, worker):
+        log.info(f"Removed worker {worker}")
