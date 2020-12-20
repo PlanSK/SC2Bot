@@ -18,7 +18,11 @@ class PlanBot(BaseBot):
             worker.stop()
 
         mine_expansion = self.expansion_locations_dict[self.start_location]
-        self.mining_mgr = MiningManager(mine_expansion, self.start_location, self.workers)
+        self.mining_mgr = MiningManager(
+            mine_expansion, 
+            self.start_location, 
+            self.workers
+        )
         await self.mining_mgr.organize_mining()
 
     async def on_step(self, iteration):
@@ -28,12 +32,6 @@ class PlanBot(BaseBot):
         # """
         await self.update()
 
-        # for worker in self.workers:
-        #     if str(worker.orders).find("Gather") > 0:
-        #         print(f"{worker.tag} = {worker.orders}")
-        # print('='*30)
-
-        # await self.mining_mgr.control_mining()
         # self.draw_sphere(self.start_location, 10)
 
     async def on_end(self, game_result):

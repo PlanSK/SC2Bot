@@ -1,5 +1,7 @@
 from loguru import logger as log
 
+from sc2.ids.ability_id import AbilityId
+
 from wrappers.base_wrapper import BaseWrapper
 
 class SCV(BaseWrapper):
@@ -12,7 +14,20 @@ class SCV(BaseWrapper):
         self.my_mineral = mineral
 
     def get_my_mineral(self):
-        return self.my_mineral
+        return self.my_mineral.get_unit().tag
+
+    def control_mining(self):
+        if self.get_unit().orders:
+            order = self.get_unit().orders[0]
+            if order.ability.id == AbilityId.HARVEST_GATHER:
+                if order.target != self.my_mineral.get_unit().tag:
+                    print(f"{self} mining is not {order.target} --> {self.my_mineral.get_unit().tag}")
+                    self.get_unit().gather(self.my_mineral.get_unit())
+                else:
+                    print(f"{self} mining is true mineral {order.target}")
+        else:
+            print(f'{self} needs "подзатыльник"!')
+            self.get_unit().gather(self.my_mineral.get_unit())
 
     def update(self):
-        pass
+        self.control_mining()
