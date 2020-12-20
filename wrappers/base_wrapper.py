@@ -1,3 +1,4 @@
+from .state import State
 from managers.base_manager import BaseManager
 
 
@@ -8,6 +9,7 @@ class BaseWrapper(object):
         self.tag = tag
         self._instances.add(self)
         self._unit = self.bot.all_units.by_tag(self.tag)
+        self._state = State.IDLE
 
     def __str__(self):
         return f"{self._unit.tag}"

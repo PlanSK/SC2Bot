@@ -4,6 +4,9 @@ from sc2.ids.ability_id import AbilityId
 
 from wrappers.base_wrapper import BaseWrapper
 
+from wrappers.state import State
+
+
 class SCV(BaseWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -12,6 +15,7 @@ class SCV(BaseWrapper):
         log.info(f"Worker {self} is going to gather {mineral}")
         self.get_unit().gather(mineral.get_unit())
         self.my_mineral = mineral
+        self._state = State.MINING
 
     def get_my_mineral(self):
         return self.my_mineral.get_unit().tag
@@ -30,4 +34,9 @@ class SCV(BaseWrapper):
             self.get_unit().gather(self.my_mineral.get_unit())
 
     def update(self):
-        self.control_mining()
+        if self._state == State.IDLE:
+            pass
+        elif self._state == State.MINING:
+            self.control_mining()
+        else:
+            log.warning(f"WARN: wrong state: {self._state}")

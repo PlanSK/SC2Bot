@@ -2,6 +2,7 @@ import sc2
 from sc2.bot_ai import BotAI
 
 from managers.base_manager import BaseManager
+
 from managers.mining_manager import MiningManager
 
 from wrappers.base_wrapper import BaseWrapper
