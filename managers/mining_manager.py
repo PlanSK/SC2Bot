@@ -13,8 +13,8 @@ class MiningManager(BaseManager):
         self.location = location
         self.mining_expansion = mining_expansion
         self.workers = workers
-        self.make_mineral_wrappers()
         self.make_scv_wrappers()
+        self.make_mineral_wrappers()
     
     def make_mineral_wrappers(self):
         minerals = sorted(
@@ -48,32 +48,56 @@ class MiningManager(BaseManager):
         ]
     
     async def organize_mining(self):
-        for scv in self.scv_wrappers:
-            for mineral in self.mineral_wrappers_high:
-                if len(mineral.get_workers()) <= 1:
+        for mineral in self.mineral_wrappers_high:
+            nearest_scv = sorted(
+                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
+                key=lambda m: mineral.get_unit().distance_to(m.get_unit())
+            )
+            for scv in nearest_scv:
+                if mineral.get_workers_amount() <= 1:
                     print(f"{scv} Беру большой.")
                     mineral.add_worker(scv)
                     scv.mine(mineral)
+                else:
                     break
-                
-        for scv in self.scv_wrappers:
-            if scv._state == State.IDLE:
-                for mineral in self.mineral_wrappers_low:
-                    if not mineral.get_workers():
-                        print(f"{scv} Беру поменьше.")
-                        mineral.add_worker(scv)
-                        scv.mine(mineral)
-                        break
 
-        for scv in self.scv_wrappers:
-            self.mineral_wrappers_total = sorted(
-                self.mineral_wrappers_total,
-                key=lambda m: m.get_workers_amount()
+        for mineral in self.mineral_wrappers_low:
+            nearest_scv = sorted(
+                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
+                key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
+            for scv in nearest_scv:
+                if mineral.get_workers_amount() < 1:
+                    print(f"{scv} Беру поменьше.")
+                    mineral.add_worker(scv)
+                    scv.mine(mineral)
+                else:
+                    break   
+        
+        self.mineral_wrappers_total = sorted(
+            self.mineral_wrappers_total,
+            key=lambda m: m.get_workers_amount()
+        )
 
+        free_scv = [
+            scv 
+            for scv in self.scv_wrappers 
+            if scv._state == State.IDLE
+        ]
+
+        while free_scv:
             for mineral in self.mineral_wrappers_total:
-                if scv._state == State.IDLE:
-                    print("Ловим бездельников :)")
+                free_scv = [
+                    scv 
+                    for scv in self.scv_wrappers 
+                    if scv._state == State.IDLE
+                ]
+                nearest_scv = sorted(
+                    free_scv,
+                    key=lambda m: mineral.get_unit().distance_to(m.get_unit())
+                )
+                for scv in nearest_scv:
+                    print(f"Ловим бездельников :)")
                     mineral.add_worker(scv)
                     scv.mine(mineral)
                     break
