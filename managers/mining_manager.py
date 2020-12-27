@@ -127,13 +127,10 @@ class MiningManager(BaseManager):
         resource_workers_needed = mineral_workers_need_count + vespene_workers_need_count
         unit_type = UnitTypeId.SCV
 
-        if len(self.scv_wrappers) < mineral_workers_need_count:
-            if self.bot.supply_left > 1:
-                if (self.bot.can_afford(unit_type) 
-                        and not len(self.townhalls[0].get_unit().orders)):
-                    self.townhalls[0].train_unit(unit_type)
-            # else:
-                # supply warning!
+        if (all_collecting_workers < mineral_workers_need_count 
+                and self.bot.can_afford(unit_type) 
+                and not len(self.townhalls[0].get_unit().orders)):
+            self.townhalls[0].train_unit(unit_type)
 
 
     def update(self):

@@ -31,7 +31,13 @@ class BuildingManager(BaseManager):
 
 
     async def supply_control(self):
-        if (self.bot.supply_left <= 2 
+        uncomplited_depots = [
+            depots.tag
+            for depots in self.bot.structures 
+            if depots.name == "SupplyDepot" and depots.build_progress < 1.0
+        ]
+        if (self.bot.supply_left == 1 
+                and not uncomplited_depots
                 and self.bot.can_afford(UnitTypeId.SUPPLYDEPOT)):
             await self.supply_build()
     
