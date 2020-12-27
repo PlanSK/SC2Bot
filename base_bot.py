@@ -11,6 +11,7 @@ from wrappers.base_wrapper import BaseWrapper
 class BaseBot(BotAI):
     def __init__(self):
         BaseWrapper.set_bot_instance(self)
+        BaseManager.set_bot_instance(self)
 
     async def update(self):
         BaseWrapper.update_subclasses()

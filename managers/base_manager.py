@@ -5,6 +5,10 @@ class BaseManager:
         self._instances.add(self)
 
     @classmethod
+    def set_bot_instance(cls, bot):
+        cls.bot = bot
+
+    @classmethod
     def update_subclasses(cls):
         for manager in cls._instances:
             if manager is not None:

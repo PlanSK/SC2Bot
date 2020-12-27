@@ -18,6 +18,9 @@ class SCV(BaseWrapper):
         self._state = State.MINING
 
     def get_my_mineral(self):
+        # if not self.my_mineral.get_unit().tag:
+        #     return None
+
         return self.my_mineral.get_unit().tag
 
     def control_mining(self):
@@ -25,12 +28,12 @@ class SCV(BaseWrapper):
             order = self.get_unit().orders[0]
             if order.ability.id == AbilityId.HARVEST_GATHER:
                 if order.target != self.my_mineral.get_unit().tag:
-                    print(f"{self} mining is not {order.target} --> {self.my_mineral.get_unit().tag}")
+                    # print(f"{self} mining is not {order.target} --> {self.my_mineral.get_unit().tag}")
                     self.get_unit().gather(self.my_mineral.get_unit())
-                else:
-                    print(f"{self} mining is true mineral {order.target}")
+                # else:
+                    # print(f"{self} mining is true mineral {order.target}")
         else:
-            print(f'{self} needs "подзатыльник"!')
+            # print(f'{self} needs "подзатыльник"!')
             self.get_unit().gather(self.my_mineral.get_unit())
 
     def update(self):

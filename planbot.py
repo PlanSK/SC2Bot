@@ -1,5 +1,9 @@
 from base_bot import BaseBot
+
 from managers.mining_manager import MiningManager
+
+from managers.build_manager import BuildingManager
+
 from wrappers.base_wrapper import BaseWrapper
 
 
@@ -18,20 +22,29 @@ class PlanBot(BaseBot):
             worker.stop()
 
         mine_expansion = self.expansion_locations_dict[self.start_location]
+        self.building_mgr = BuildingManager(
+            townhalls=self.townhalls,
+            buildings=self.structures,
+            location=self.start_location
+        )
         self.mining_mgr = MiningManager(
             mine_expansion, 
             self.start_location, 
-            self.workers
+            self.workers,
+            self.building_mgr.get_townhalls_wrappers()
         )
+
         await self.mining_mgr.organize_mining()
+        
 
     async def on_step(self, iteration):
         """
         Вызывается на каждом шаге игры.
         :param iteration:
         # """
+        await self.mining_mgr.control_mining()
+        await self.building_mgr.supply_control()
         await self.update()
-
         # self.draw_sphere(self.start_location, 10)
 
     async def on_end(self, game_result):
@@ -51,6 +64,8 @@ class PlanBot(BaseBot):
         """ 
         Юнит создан
         """
+        if unit.name == "SCV":
+            self.mining_mgr.add_scv_unit(unit)
         # print(f"UNIT GOT CREATED {unit}")
 
     async def on_unit_type_changed(self, unit, previous_type):

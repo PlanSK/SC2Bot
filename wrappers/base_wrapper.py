@@ -34,5 +34,8 @@ class BaseWrapper(object):
     def get_unit(self):
         return self._unit
 
+    def get_tag(self):
+        return self._unit.tag
+
     def update(self):
         raise NotImplementedError()
