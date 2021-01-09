@@ -43,6 +43,10 @@ class BuildingManager(BaseManager):
                 and self.bot.can_afford(UnitTypeId.SUPPLYDEPOT)):
             await self.supply_build()
     
+    def gas_refine_build(self, worker, location):
+        print(f"{worker} build gas refinery in position {location}")
+        worker.get_unit().build(UnitTypeId.REFINERY, location)
+
     def get_townhalls_wrappers(self):
         return self.command_center_wrappers
 

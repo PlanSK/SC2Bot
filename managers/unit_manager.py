@@ -54,8 +54,20 @@ class UnitManager(BaseManager):
                 and not len(self.townhalls[0].get_unit().orders)):
             self.townhalls[0].train_unit(unit_type)
 
-    def unit_list_add(self):
-        pass
+    def worker_request(self):
+        free_worker_wrappers = list()
+        for get_wrapper in self.worker_wrappers:
+            if get_wrapper.get_state() == State.IDLE:
+                free_worker_wrappers.append(get_wrapper)
+        if free_worker_wrappers:
+            return free_worker_wrappers
+        else:
+            return self.on_call_worker
+
+    def on_call_worker(self, worker):
+        for scv in self.worker_wrappers:
+            if scv.get_tag() == worker:
+                self.on_call_worker = scv
 
     def get_worker_wrappers_list(self):
         return self.worker_wrappers

@@ -40,7 +40,8 @@ class PlanBot(BaseBot):
             mining_expansion = mine_expansion, 
             location = self.start_location, 
             worker_wrappers = self.unit_manager.get_worker_wrappers_list(),
-            unitmanager = self.unit_manager
+            unit_manager = self.unit_manager,
+            build_manager = self.building_mgr
         )
 
         await self.mining_mgr.organize_mining()
