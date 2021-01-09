@@ -34,6 +34,8 @@ class PlanBot(BaseBot):
             townhalls = self.building_mgr.get_townhalls_wrappers()
         )
 
+        self.building_mgr.get_unit_mgr(self.unit_manager)
+
         mine_expansion = self.expansion_locations_dict[self.start_location]
 
         self.mining_mgr = MiningManager(
