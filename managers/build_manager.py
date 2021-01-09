@@ -6,6 +6,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 
 from .base_manager import BaseManager
 
+
 class BuildingManager(BaseManager):
     def __init__(self, townhalls, buildings, location, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,6 +26,7 @@ class BuildingManager(BaseManager):
         map_center = self.bot.game_info.map_center
         optimal_placement_position = self.bot.start_location.towards(map_center, distance=5)
         placement_position = await self.bot.find_placement(UnitTypeId.SUPPLYDEPOT, near=optimal_placement_position, placement_step=1)
+        # Get unit to building supply depot
         if placement_position:
             build_worker = self.bot.workers.closest_to(placement_position)
             build_worker.build(UnitTypeId.SUPPLYDEPOT, placement_position)

@@ -1,5 +1,5 @@
 import sc2
-from sc2.bot_ai import BotAI
+# from sc2.bot_ai import BotAI
 
 from managers.base_manager import BaseManager
 
@@ -8,7 +8,7 @@ from managers.mining_manager import MiningManager
 from wrappers.base_wrapper import BaseWrapper
 
 
-class BaseBot(BotAI):
+class BaseBot(sc2.bot_ai.BotAI):
     def __init__(self):
         BaseWrapper.set_bot_instance(self)
         BaseManager.set_bot_instance(self)

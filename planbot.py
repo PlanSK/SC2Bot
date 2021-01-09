@@ -4,6 +4,8 @@ from managers.mining_manager import MiningManager
 
 from managers.build_manager import BuildingManager
 
+from managers.unit_manager import UnitManager
+
 from wrappers.base_wrapper import BaseWrapper
 
 
@@ -18,20 +20,27 @@ class PlanBot(BaseBot):
         """
         Вызывается единственный раз перед запуском on_step.
         """
-        for worker in self.workers:
-            worker.stop()
+        # for worker in self.workers: # move to unit manager
+        #     worker.stop()
+
+        self.building_mgr = BuildingManager(
+            townhalls = self.townhalls,
+            buildings = self.structures,
+            location = self.start_location
+        )
+
+        self.unit_manager = UnitManager(
+            workers = self.workers,
+            townhalls = self.building_mgr.get_townhalls_wrappers()
+        )
 
         mine_expansion = self.expansion_locations_dict[self.start_location]
-        self.building_mgr = BuildingManager(
-            townhalls=self.townhalls,
-            buildings=self.structures,
-            location=self.start_location
-        )
+
         self.mining_mgr = MiningManager(
-            mine_expansion, 
-            self.start_location, 
-            self.workers,
-            self.building_mgr.get_townhalls_wrappers()
+            mining_expansion = mine_expansion, 
+            location = self.start_location, 
+            worker_wrappers = self.unit_manager.get_worker_wrappers_list(),
+            unitmanager = self.unit_manager
         )
 
         await self.mining_mgr.organize_mining()
@@ -64,8 +73,9 @@ class PlanBot(BaseBot):
         """ 
         Юнит создан
         """
-        if unit.name == "SCV":
-            self.mining_mgr.add_scv_unit(unit)
+        if unit.name == "SCV" or unit.name == "DRONE" or unit.name == "PROBE":
+            # self.mining_mgr.add_scv_unit(unit)
+            self.unit_manager.add_worker_unit(unit)
         # print(f"UNIT GOT CREATED {unit}")
 
     async def on_unit_type_changed(self, unit, previous_type):

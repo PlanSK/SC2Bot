@@ -30,3 +30,10 @@ to be continued.
     * CommandCenter
   * neutrals
     * Mineral
+
++++
+* unit manager
+  * make list wrappers of units on start
+  * контролирует все операции с юнитами
+  * возвращает список свободных юнитов по запросу
+  * назначает "дежурного" юнита и выдает его в случае необходимости

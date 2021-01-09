@@ -8,16 +8,17 @@ from .base_manager import BaseManager
 
 from wrappers.state import State
 
+from .unit_manager import UnitManager
+
 
 class MiningManager(BaseManager):
-    def __init__(self, mining_expansion, location, workers, townhalls, *args, **kwargs):
+    def __init__(self, mining_expansion, location, worker_wrappers, unitmanager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.location = location
         self.mining_expansion = mining_expansion
-        self.workers = workers
-        self.townhalls = townhalls
-        self.make_scv_wrappers()
+        self.scv_wrappers = worker_wrappers
         self.make_mineral_wrappers()
+        self.unit_mgr = unitmanager
     
     def make_mineral_wrappers(self):
         minerals = sorted(
@@ -44,19 +45,7 @@ class MiningManager(BaseManager):
             else:
                 self.mineral_wrappers_low.append(mineral)
         
-    def make_scv_wrappers(self):
-        self.scv_wrappers = [
-            SCV(tag = scv_unit.tag)
-            for scv_unit in self.workers
-        ]
-    
-    def add_scv_unit(self, unit):
-        if unit.tag not in [wrapper.get_tag() for wrapper in self.scv_wrappers]:
-            unit.stop()
-            self.scv_wrappers.append(SCV(tag = unit.tag))
-            print(f"I'm adding {unit.tag} in wrappers list")
-
-    async def idler_hunter(self):
+    async def idler_hunter(self): # maybe move to unit manager
         free_scv = [
             scv 
             for scv in self.scv_wrappers 
@@ -75,14 +64,14 @@ class MiningManager(BaseManager):
                     key=lambda m: mineral.get_unit().distance_to(m.get_unit())
                 )
                 for scv in nearest_scv:
-                    print(f"Ловим бездельников :)")
+                    # print(f"Ловим бездельников :)")
                     mineral.add_worker(scv)
                     scv.mine(mineral)
                     break
 
     async def organize_mining(self):
         for mineral in self.mineral_wrappers_high:
-            nearest_scv = sorted(
+            nearest_scv = sorted( # get unit manager
                 [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
                 key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
@@ -125,13 +114,9 @@ class MiningManager(BaseManager):
         # remake to counter of vespene geizer wrappers
 
         resource_workers_needed = mineral_workers_need_count + vespene_workers_need_count
-        unit_type = UnitTypeId.SCV
 
-        if (all_collecting_workers < mineral_workers_need_count 
-                and self.bot.can_afford(unit_type) 
-                and not len(self.townhalls[0].get_unit().orders)):
-            self.townhalls[0].train_unit(unit_type)
-
+        if all_collecting_workers < mineral_workers_need_count:
+            self.unit_mgr.make_workers()
 
     def update(self):
         pass
