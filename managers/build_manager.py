@@ -22,13 +22,16 @@ class BuildingManager(BaseManager):
             # if get_build.name == "CommandCenter"
         ]
 
+    def get_unit_mgr(self, unit_manager):
+        self.unit_mgr = unit_manager
+
     async def supply_build(self):
         map_center = self.bot.game_info.map_center
         optimal_placement_position = self.bot.start_location.towards(map_center, distance=5)
         placement_position = await self.bot.find_placement(UnitTypeId.SUPPLYDEPOT, near=optimal_placement_position, placement_step=1)
         # Get unit to building supply depot
         if placement_position:
-            build_worker = self.bot.workers.closest_to(placement_position)
+            build_worker = self.unit_mgr.worker_request().get_unit()
             build_worker.build(UnitTypeId.SUPPLYDEPOT, placement_position)
 
 

@@ -26,13 +26,15 @@ class PlanBot(BaseBot):
         self.building_mgr = BuildingManager(
             townhalls = self.townhalls,
             buildings = self.structures,
-            location = self.start_location
+            location = self.start_location,
         )
 
         self.unit_manager = UnitManager(
             workers = self.workers,
             townhalls = self.building_mgr.get_townhalls_wrappers()
         )
+
+        self.building_mgr.get_unit_mgr(self.unit_manager)
 
         mine_expansion = self.expansion_locations_dict[self.start_location]
 
