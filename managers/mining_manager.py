@@ -107,7 +107,7 @@ class MiningManager(BaseManager):
                     scv.mine(mineral)
                 else:
                     break   
-        self.unit_mgr.on_call_worker(self.mineral_wrappers_low[-1].get_workers()[-1])
+        self.unit_mgr.on_call_worker_add(self.mineral_wrappers_low[-1].get_workers()[-1])
         self.mineral_wrappers_total = sorted(
             self.mineral_wrappers_total,
             key=lambda m: m.get_workers_amount()

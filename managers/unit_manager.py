@@ -64,7 +64,7 @@ class UnitManager(BaseManager):
         else:
             return self.on_call_worker
 
-    def on_call_worker(self, worker):
+    def on_call_worker_add(self, worker):
         for scv in self.worker_wrappers:
             if scv.get_tag() == worker:
                 self.on_call_worker = scv
