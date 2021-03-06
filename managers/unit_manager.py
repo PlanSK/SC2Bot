@@ -60,7 +60,7 @@ class UnitManager(BaseManager):
             if get_wrapper.get_state() == State.IDLE:
                 free_worker_wrappers.append(get_wrapper)
         if free_worker_wrappers:
-            return free_worker_wrappers
+            return free_worker_wrappers[0]
         else:
             return self.on_call_worker
 
@@ -75,3 +75,5 @@ class UnitManager(BaseManager):
     def update(self):
         pass
 
+    def remove_unit(self, unit):
+        print("NOT IMPLEMENTED LOGIC FOR UNIT REMOVAL")

@@ -47,11 +47,14 @@ class BuildingManager(BaseManager):
             await self.supply_build()
     
     def gas_refine_build(self, worker, location):
-        print(f"{worker} build gas refinery in position {location}")
+        # print(f"{worker} build gas refinery in position {location}")
         worker.get_unit().build(UnitTypeId.REFINERY, location)
 
     def get_townhalls_wrappers(self):
         return self.command_center_wrappers
 
     def update(self):
+        pass
+
+    def remove_unit(self, unit):
         pass

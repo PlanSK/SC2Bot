@@ -28,6 +28,7 @@ class SCV(BaseWrapper):
                     self.get_unit().gather(self.my_mineral.get_unit())
         else:
             self.get_unit().gather(self.my_mineral.get_unit())
+        # print(f'W: {self.get_unit().tag} My state {self.get_state()} Target: {self.my_mineral.get_unit().name}')
 
     def get_state(self):
         return self._state
