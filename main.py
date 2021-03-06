@@ -11,7 +11,7 @@ from planbot import PlanBot
 maps = [
     map_name[:-7]
     for map_name in
-    os.listdir("D:/Games/Starcraft II/Maps/")
+    os.listdir(os.getenv('SC2PATH') + "/Maps")
 ]
 
 sc2.run_game(
