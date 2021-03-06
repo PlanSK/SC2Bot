@@ -75,3 +75,5 @@ class UnitManager(BaseManager):
     def update(self):
         pass
 
+    def remove_unit(self, unit):
+        print("NOT IMPLEMENTED LOGIC FOR UNIT REMOVAL")
