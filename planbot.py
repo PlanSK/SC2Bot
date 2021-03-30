@@ -76,13 +76,9 @@ class PlanBot(BaseBot):
         """ 
         Юнит создан
         """
-        gas_unit_names = ["REFINERY", "ASSIMILATOR", "EXTRACTOR"]
         worker_unit_names = ["SCV", "DRONE", "PROBE"]
-        if unit.name in worker_unit_names:
+        if unit.name.upper() in worker_unit_names:
             self.unit_manager.add_worker_unit(unit)
-        elif unit.name in gas_unit_names:
-            self.mining_mgr.add_vespene_factory(unit.name)
-            pass
 
     async def on_unit_type_changed(self, unit, previous_type):
         """ 
@@ -100,7 +96,8 @@ class PlanBot(BaseBot):
         """
         Постройка завершена.
         """
-        pass
+        if unit.name.upper() in ["REFINERY", "ASSIMILATOR", "EXTRACTOR"]:
+            self.mining_mgr.add_vespene_factory(unit)
 
     async def on_upgrade_complete(self, upgrade):
         """

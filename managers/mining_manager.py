@@ -58,12 +58,9 @@ class MiningManager(BaseManager):
         for geyser in vespene:
             self.vespene_geysers_wrappers.append(VespeneGeyser(tag = geyser.tag))
 
-    def add_vespene_factory(self, vespene_factory_name):
-        print(vespene_factory_name)
-    #     self.vespene_structures_wrappers = list()
-    #     for structure in self.gas_buildings:
-    #         self.vespene_structures_wrappers.append(VespeneRefinery(tag = structure.tag))
-    #         print(structure.tag)
+    def add_vespene_factory(self, vespene_factory_unit):
+        self.gas_structures.append(VespeneFactory(tag = vespene_factory_unit.tag))
+        log.info(f"Gas structure {vespene_factory_unit.tag} added in wrappers list")
 
     async def organize_mining(self):
         for mineral in self.mineral_wrappers_high:
