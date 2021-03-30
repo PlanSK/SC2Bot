@@ -34,7 +34,6 @@ class BuildingManager(BaseManager):
             build_worker = self.unit_mgr.worker_request().get_unit()
             build_worker.build(UnitTypeId.SUPPLYDEPOT, placement_position)
 
-
     async def supply_control(self):
         uncomplited_depots = [
             depots.tag
@@ -47,9 +46,8 @@ class BuildingManager(BaseManager):
             await self.supply_build()
     
     def gas_refine_build(self, worker, location):
-        # print(f"{worker} build gas refinery in position {location}")
         worker.get_unit().build(UnitTypeId.REFINERY, location)
-
+        
     def get_townhalls_wrappers(self):
         return self.command_center_wrappers
 

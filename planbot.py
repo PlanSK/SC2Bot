@@ -76,10 +76,13 @@ class PlanBot(BaseBot):
         """ 
         Юнит создан
         """
-        if unit.name == "SCV" or unit.name == "DRONE" or unit.name == "PROBE":
-            # self.mining_mgr.add_scv_unit(unit)
+        gas_unit_names = ["REFINERY", "ASSIMILATOR", "EXTRACTOR"]
+        worker_unit_names = ["SCV", "DRONE", "PROBE"]
+        if unit.name in worker_unit_names:
             self.unit_manager.add_worker_unit(unit)
-        # print(f"UNIT GOT CREATED {unit}")
+        elif unit.name in gas_unit_names:
+            self.mining_mgr.add_vespene_factory(unit.name)
+            pass
 
     async def on_unit_type_changed(self, unit, previous_type):
         """ 
