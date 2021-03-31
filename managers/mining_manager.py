@@ -64,8 +64,9 @@ class MiningManager(BaseManager):
 
     async def organize_mining(self):
         for mineral in self.mineral_wrappers_high:
-            nearest_scv = sorted( # get unit manager
-                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
+            free_workers = self.unit_mgr.get_idle_workers()
+            nearest_scv = sorted(
+                free_workers,
                 key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
             for scv in nearest_scv:
@@ -76,8 +77,9 @@ class MiningManager(BaseManager):
                     break
 
         for mineral in self.mineral_wrappers_low:
+            free_workers = self.unit_mgr.get_idle_workers()
             nearest_scv = sorted(
-                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
+                free_workers,
                 key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
             for scv in nearest_scv:
@@ -98,7 +100,6 @@ class MiningManager(BaseManager):
             get_worker = self.unit_mgr.worker_request()
             location_gas = self.vespene_geysers_wrappers[0].get_unit()
             self.build_mgr.gas_refine_build(get_worker, location_gas)
-        # заполнение
 
     async def control_mining(self):
         mineral_workers_need_count = len(self.mineral_wrappers_total) * 2
@@ -115,21 +116,13 @@ class MiningManager(BaseManager):
         if all_collecting_workers < resource_workers_needed:
             self.unit_mgr.make_workers()
 
-        free_scv = [
-            scv 
-            for scv in self.scv_wrappers 
-            if scv._state == State.IDLE
-        ]
+        free_scv = self.unit_mgr.get_idle_workers()
 
         if mineral_workers_need_count > all_collecting_workers:
             # distributing free workers to minerals
             while free_scv:
                 for mineral in self.mineral_wrappers_total:
-                    free_scv = [
-                        scv 
-                        for scv in self.scv_wrappers 
-                        if scv._state == State.IDLE
-                    ]
+                    free_scv = self.unit_mgr.get_idle_workers()
                     nearest_scv = sorted(
                         free_scv,
                         key=lambda m: mineral.get_unit().distance_to(m.get_unit())

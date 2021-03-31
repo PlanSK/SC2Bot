@@ -55,10 +55,7 @@ class UnitManager(BaseManager):
             self.townhalls[0].train_unit(unit_type)
 
     def worker_request(self):
-        free_worker_wrappers = list()
-        for get_wrapper in self.worker_wrappers:
-            if get_wrapper.get_state() == State.IDLE:
-                free_worker_wrappers.append(get_wrapper)
+        free_worker_wrappers = self.get_idle_workers()
         if free_worker_wrappers:
             return free_worker_wrappers[0]
         else:
@@ -71,6 +68,14 @@ class UnitManager(BaseManager):
 
     def get_worker_wrappers_list(self):
         return self.worker_wrappers
+
+    def get_idle_workers(self):
+        free_workers = [
+            get_wrapper 
+            for get_wrapper in self.worker_wrappers
+            if get_wrapper.get_state() == State.IDLE
+        ]
+        return free_workers
 
     def update(self):
         pass
