@@ -69,7 +69,9 @@ class UnitManager(BaseManager):
     def get_worker_wrappers_list(self):
         return self.worker_wrappers
 
-    def get_idle_workers(self):
+    def get_idle_workers(self) -> list:
+        """Method returning free worker wrappers list."""
+
         free_workers = [
             get_wrapper 
             for get_wrapper in self.worker_wrappers

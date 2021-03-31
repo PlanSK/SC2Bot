@@ -42,12 +42,12 @@ class MiningManager(BaseManager):
         for mineral_unit in minerals:
             mineral = Mineral(tag = mineral_unit.tag)
             
-            self.mineral_wrappers_total.append(mineral)
-
             if mineral_unit.mineral_contents > mean_minerals_value:
                 self.mineral_wrappers_high.append(mineral)
             else:
                 self.mineral_wrappers_low.append(mineral)
+        
+        self.mineral_wrappers_total = self.mineral_wrappers_high + self.mineral_wrappers_low
     
     def make_vespene_wrappers(self):
         self.vespene_geysers_wrappers = list()
@@ -62,8 +62,8 @@ class MiningManager(BaseManager):
         self.gas_structures.append(VespeneFactory(tag = vespene_factory_unit.tag))
         log.info(f"Gas structure {vespene_factory_unit.tag} added in wrappers list")
 
-    async def organize_mining(self):
-        for mineral in self.mineral_wrappers_high:
+    def organize_minerals(self, mineral_wrapper_list: list):
+        for mineral in mineral_wrapper_list:
             free_workers = self.unit_mgr.get_idle_workers()
             nearest_scv = sorted(
                 free_workers,
@@ -76,19 +76,22 @@ class MiningManager(BaseManager):
                 else:
                     break
 
-        for mineral in self.mineral_wrappers_low:
-            free_workers = self.unit_mgr.get_idle_workers()
-            nearest_scv = sorted(
-                free_workers,
-                key=lambda m: mineral.get_unit().distance_to(m.get_unit())
-            )
-            for scv in nearest_scv:
-                if mineral.get_workers_amount() < 1:
-                    mineral.add_worker(scv)
-                    scv.mine(mineral)
-                else:
-                    break   
-        self.unit_mgr.on_call_worker_add(self.mineral_wrappers_low[-1].get_workers()[-1])
+    async def organize_mining(self):
+        """Назначает рабочих на минералы в зависимости от содержания в них 
+        минералов, а также устанавливает рабочего по умолчанию и передает 
+        его в Unit Manager. 
+
+        После этого производит сортировку по количеству рабочих на минералах
+        """
+
+        self.organize_minerals(self.mineral_wrappers_high)
+        self.organize_minerals(self.mineral_wrappers_low)
+
+        for wrapper in self.mineral_wrappers_total[::-1]:
+            if wrapper.get_workers_amount():
+                self.unit_mgr.on_call_worker_add(wrapper.get_workers()[-1])
+                break
+        
         self.mineral_wrappers_total = sorted(
             self.mineral_wrappers_total,
             key=lambda m: m.get_workers_amount()
