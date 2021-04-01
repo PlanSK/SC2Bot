@@ -6,6 +6,7 @@ class VespeneGeyser(BaseWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._workers = []
+        self.factory_id = None
 
     def update(self):
         pass

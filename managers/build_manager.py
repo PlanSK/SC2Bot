@@ -4,6 +4,8 @@ from sc2.units import Units
 
 from sc2.ids.unit_typeid import UnitTypeId
 
+from sc2.ids.ability_id import AbilityId
+
 from .base_manager import BaseManager
 
 
@@ -34,20 +36,26 @@ class BuildingManager(BaseManager):
             build_worker = self.unit_mgr.worker_request().get_unit()
             build_worker.build(UnitTypeId.SUPPLYDEPOT, placement_position)
 
+    def build_vespene_refine(self, vespene_geyser):
+        builder = self.unit_mgr.worker_request().get_unit()
+        if (self.bot.can_afford(UnitTypeId.REFINERY) and 
+                not builder.order_target == vespene_geyser.get_tag()):
+            builder.build(
+                UnitTypeId.REFINERY, 
+                vespene_geyser.get_unit()
+            )
+
     async def supply_control(self):
         uncomplited_depots = [
             depots.tag
-            for depots in self.bot.structures 
-            if depots.name == "SupplyDepot" and depots.build_progress < 1.0
+            for depots in self.bot.structures.not_ready
+            if depots.name == "SupplyDepot"
         ]
         if (self.bot.supply_left == 1 
                 and not uncomplited_depots
                 and self.bot.can_afford(UnitTypeId.SUPPLYDEPOT)):
             await self.supply_build()
-    
-    def gas_refine_build(self, worker, location):
-        worker.get_unit().build(UnitTypeId.REFINERY, location)
-        
+            
     def get_townhalls_wrappers(self):
         return self.command_center_wrappers
 

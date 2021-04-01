@@ -21,7 +21,6 @@ class MiningManager(BaseManager):
         self.make_vespene_wrappers()
         self.unit_mgr = unit_manager
         self.build_mgr = build_manager
-        self.organize_control = False
         self.gas_structures = list()
     
     def make_mineral_wrappers(self):
@@ -58,11 +57,32 @@ class MiningManager(BaseManager):
         for geyser in vespene:
             self.vespene_geysers_wrappers.append(VespeneGeyser(tag = geyser.tag))
 
-    def add_vespene_factory(self, vespene_factory_unit):
-        self.gas_structures.append(VespeneFactory(tag = vespene_factory_unit.tag))
-        log.info(f"Gas structure {vespene_factory_unit.tag} added in wrappers list")
+    def organize_gas_mining(self):
+        log.info(f'[GAS] Entering in gas mining organize method.')
+        if self.bot.gas_buildings.ready:
+            log.info('[GAS] Ready to collecting')
+        elif self.bot.gas_buildings:
+            log.info('[GAS] Waiting to building gas structure')
+        else:
+            log.info('[GAS] Start of construction GAS build.')
+            for geyser in self.vespene_geysers_wrappers:
+                self.build_mgr.build_vespene_refine(geyser)
+                break
 
-    def organize_minerals(self, mineral_wrapper_list: list):
+    # def collecting_gas_factory(self, vespene_factory_wrapper):
+    #     log.ingo(f'Distributing workers to gas factory successful {vespene_factory_wrapper.get_tag()}')
+    #     free_workers = self.unit_mgr.get_idle_workers()
+    #     for worker in free_workers:
+    #         worker.get_unit().gather(vespene_factory_wrapper.get_unit())
+    #         vespene_factory_wrapper.add_worker(worker)
+
+    def add_vespene_factory(self, vespene_factory_unit):
+        get_structure = VespeneFactory(tag = vespene_factory_unit.tag)
+        self.gas_structures.append(get_structure)
+        log.info(f"Gas structure {get_structure.get_tag()} added in wrappers list")
+        # self.collecting_gas_factory(get_structure)
+
+    def distribution_of_workers_to_minerals(self, mineral_wrapper_list: list):
         for mineral in mineral_wrapper_list:
             free_workers = self.unit_mgr.get_idle_workers()
             nearest_scv = sorted(
@@ -84,8 +104,8 @@ class MiningManager(BaseManager):
         После этого производит сортировку по количеству рабочих на минералах
         """
 
-        self.organize_minerals(self.mineral_wrappers_high)
-        self.organize_minerals(self.mineral_wrappers_low)
+        self.distribution_of_workers_to_minerals(self.mineral_wrappers_high)
+        self.distribution_of_workers_to_minerals(self.mineral_wrappers_low)
 
         for wrapper in self.mineral_wrappers_total[::-1]:
             if wrapper.get_workers_amount():
@@ -97,32 +117,19 @@ class MiningManager(BaseManager):
             key=lambda m: m.get_workers_amount()
         )
 
-    def build_vespene_refine(self):
-        # постройка фабрики
-        if self.bot.can_afford(UnitTypeId.REFINERY):
-            get_worker = self.unit_mgr.worker_request()
-            location_gas = self.vespene_geysers_wrappers[0].get_unit()
-            self.build_mgr.gas_refine_build(get_worker, location_gas)
-
     async def control_mining(self):
         mineral_workers_need_count = len(self.mineral_wrappers_total) * 2
-        vespene_workers_need_count = len(self.vespene_geysers_wrappers) * 3
-        all_collecting_workers = 0
+        collecting_mineral_workers = 0
 
         for mineral_wrappers in self.mineral_wrappers_total:
-            all_collecting_workers += mineral_wrappers.get_workers_amount()
-        # for vespene_wrapper in self.vespene_structures_wrappers:
-        #     all_collecting_workers += vespene_wrapper.get_workers_amount()
+            collecting_mineral_workers += mineral_wrappers.get_workers_amount()
 
-        resource_workers_needed = mineral_workers_need_count + vespene_workers_need_count
-
-        if all_collecting_workers < resource_workers_needed:
+        if collecting_mineral_workers < mineral_workers_need_count:
             self.unit_mgr.make_workers()
 
         free_scv = self.unit_mgr.get_idle_workers()
 
-        if mineral_workers_need_count > all_collecting_workers:
-            # distributing free workers to minerals
+        if mineral_workers_need_count > collecting_mineral_workers:
             while free_scv:
                 for mineral in self.mineral_wrappers_total:
                     free_scv = self.unit_mgr.get_idle_workers()
@@ -131,21 +138,11 @@ class MiningManager(BaseManager):
                         key=lambda m: mineral.get_unit().distance_to(m.get_unit())
                     )
                     for scv in nearest_scv:
-                        # print(f"Ловим бездельников :)")
                         mineral.add_worker(scv)
                         scv.mine(mineral)
                         break
-        elif (all_collecting_workers >= mineral_workers_need_count 
-                and (all_collecting_workers - mineral_workers_need_count) < vespene_workers_need_count):
-            if not self.organize_control: # проверка существования фабрики и ее заполненности
-                self.build_vespene_refine()
-                self.organize_control = True
-            # while free_scv:
-
-            # distributing free workers to vespene
         else:
-            # ещё какая нибудь история
-            pass
+            self.organize_gas_mining()
 
     def update(self):
         pass

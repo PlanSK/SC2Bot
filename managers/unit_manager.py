@@ -50,8 +50,8 @@ class UnitManager(BaseManager):
         elif self.my_race == Race.Zerg:
             pass
 
-        if (self.bot.can_afford(unit_type) 
-                and not len(self.townhalls[0].get_unit().orders)):
+        if (self.bot.can_afford(unit_type) and 
+                not len(self.townhalls[0].get_unit().orders)):
             self.townhalls[0].train_unit(unit_type)
 
     def worker_request(self):
