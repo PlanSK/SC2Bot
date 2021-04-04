@@ -1,14 +1,19 @@
 from loguru import logger as log
 
+
 from sc2.ids.unit_typeid import UnitTypeId
 
-from wrappers import SCV, Mineral, VespeneGeyser, VespeneFactory
+from sc2.units import Units
+
 
 from .base_manager import BaseManager
 
-from wrappers.state import State
-
 from .unit_manager import UnitManager
+
+
+from wrappers import SCV, Mineral, VespeneGeyser, VespeneFactory
+
+from wrappers.state import State
 
 
 class MiningManager(BaseManager):
@@ -21,7 +26,6 @@ class MiningManager(BaseManager):
         self.make_vespene_wrappers()
         self.unit_mgr = unit_manager
         self.build_mgr = build_manager
-        self.gas_structures = list()
     
     def make_mineral_wrappers(self):
         minerals = sorted(
@@ -61,6 +65,7 @@ class MiningManager(BaseManager):
         log.info(f'[GAS] Entering in gas mining organize method.')
         if self.bot.gas_buildings.ready:
             log.info('[GAS] Ready to collecting')
+            # self.collecting_gas_factory(get_structure)
         elif self.bot.gas_buildings:
             log.info('[GAS] Waiting to building gas structure')
         else:
@@ -75,12 +80,6 @@ class MiningManager(BaseManager):
     #     for worker in free_workers:
     #         worker.get_unit().gather(vespene_factory_wrapper.get_unit())
     #         vespene_factory_wrapper.add_worker(worker)
-
-    def add_vespene_factory(self, vespene_factory_unit):
-        get_structure = VespeneFactory(tag = vespene_factory_unit.tag)
-        self.gas_structures.append(get_structure)
-        log.info(f"Gas structure {get_structure.get_tag()} added in wrappers list")
-        # self.collecting_gas_factory(get_structure)
 
     def distribution_of_workers_to_minerals(self, mineral_wrapper_list: list):
         for mineral in mineral_wrapper_list:
@@ -107,17 +106,20 @@ class MiningManager(BaseManager):
         self.distribution_of_workers_to_minerals(self.mineral_wrappers_high)
         self.distribution_of_workers_to_minerals(self.mineral_wrappers_low)
 
+        # Moving to unit manager
         for wrapper in self.mineral_wrappers_total[::-1]:
             if wrapper.get_workers_amount():
                 self.unit_mgr.on_call_worker_add(wrapper.get_workers()[-1])
                 break
-        
+
+        # Moving to method of filling mineral wrapper
         self.mineral_wrappers_total = sorted(
             self.mineral_wrappers_total,
             key=lambda m: m.get_workers_amount()
         )
 
     async def control_mining(self):
+        # Moving this to method of filling mineral wrapper
         mineral_workers_need_count = len(self.mineral_wrappers_total) * 2
         collecting_mineral_workers = 0
 

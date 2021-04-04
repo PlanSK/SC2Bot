@@ -34,8 +34,6 @@ class PlanBot(BaseBot):
             townhalls = self.building_mgr.get_townhalls_wrappers()
         )
 
-        self.building_mgr.get_unit_mgr(self.unit_manager)
-
         mine_expansion = self.expansion_locations_dict[self.start_location]
 
         self.mining_mgr = MiningManager(
@@ -45,6 +43,8 @@ class PlanBot(BaseBot):
             unit_manager = self.unit_manager,
             build_manager = self.building_mgr
         )
+
+        self.building_mgr.transer_managers(self.unit_manager, self.mining_mgr)
 
         await self.mining_mgr.organize_mining()
         
@@ -90,14 +90,13 @@ class PlanBot(BaseBot):
         """
         Начата постройка.
         """
-        pass
+        self.building_mgr.make_building_wrapper(unit)
 
     async def on_building_construction_complete(self, unit):
         """
         Постройка завершена.
         """
-        if unit.name.upper() in ["REFINERY", "ASSIMILATOR", "EXTRACTOR"]:
-            self.mining_mgr.add_vespene_factory(unit)
+        pass
 
     async def on_upgrade_complete(self, upgrade):
         """

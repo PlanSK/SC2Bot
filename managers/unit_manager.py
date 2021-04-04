@@ -2,7 +2,9 @@ from sc2.data import Race
 
 from sc2.ids.unit_typeid import UnitTypeId
 
+
 from .base_manager import BaseManager
+
 
 from wrappers import SCV, Mineral
 
