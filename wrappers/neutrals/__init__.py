@@ -1,2 +1,3 @@
 from .minerals import Mineral
-from .vespene import Vespene
+from .vespene_geyser import VespeneGeyser
+from .vespene_factory import VespeneFactory

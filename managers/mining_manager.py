@@ -1,14 +1,19 @@
 from loguru import logger as log
 
+
 from sc2.ids.unit_typeid import UnitTypeId
 
-from wrappers import SCV, Mineral, Vespene
+from sc2.units import Units
+
 
 from .base_manager import BaseManager
 
-from wrappers.state import State
-
 from .unit_manager import UnitManager
+
+
+from wrappers import SCV, Mineral, VespeneGeyser, VespeneFactory
+
+from wrappers.state import State
 
 
 class MiningManager(BaseManager):
@@ -21,7 +26,6 @@ class MiningManager(BaseManager):
         self.make_vespene_wrappers()
         self.unit_mgr = unit_manager
         self.build_mgr = build_manager
-        self.control = False
     
     def make_mineral_wrappers(self):
         minerals = sorted(
@@ -41,12 +45,12 @@ class MiningManager(BaseManager):
         for mineral_unit in minerals:
             mineral = Mineral(tag = mineral_unit.tag)
             
-            self.mineral_wrappers_total.append(mineral)
-
             if mineral_unit.mineral_contents > mean_minerals_value:
                 self.mineral_wrappers_high.append(mineral)
             else:
                 self.mineral_wrappers_low.append(mineral)
+        
+        self.mineral_wrappers_total = self.mineral_wrappers_high + self.mineral_wrappers_low
     
     def make_vespene_wrappers(self):
         self.vespene_geysers_wrappers = list()
@@ -55,95 +59,92 @@ class MiningManager(BaseManager):
             key=lambda m: self.location.distance_to(m)
         )
         for geyser in vespene:
-            self.vespene_geysers_wrappers.append(Vespene(tag = geyser.tag))
+            self.vespene_geysers_wrappers.append(VespeneGeyser(tag = geyser.tag))
 
-    async def idler_hunter(self): # maybe move to unit manager
-        free_scv = [
-            scv 
-            for scv in self.scv_wrappers 
-            if scv._state == State.IDLE
-        ]
+    def organize_gas_mining(self):
+        log.info(f'[GAS] Entering in gas mining organize method.')
+        if self.bot.gas_buildings.ready:
+            log.info('[GAS] Ready to collecting')
+            # self.collecting_gas_factory(get_structure)
+        elif self.bot.gas_buildings:
+            log.info('[GAS] Waiting to building gas structure')
+        else:
+            log.info('[GAS] Start of construction GAS build.')
+            for geyser in self.vespene_geysers_wrappers:
+                self.build_mgr.build_vespene_refine(geyser)
+                break
 
-        while free_scv:
-            for mineral in self.mineral_wrappers_total:
-                free_scv = [
-                    scv 
-                    for scv in self.scv_wrappers 
-                    if scv._state == State.IDLE
-                ]
-                nearest_scv = sorted(
-                    free_scv,
-                    key=lambda m: mineral.get_unit().distance_to(m.get_unit())
-                )
-                for scv in nearest_scv:
-                    # print(f"Ловим бездельников :)")
-                    mineral.add_worker(scv)
-                    scv.mine(mineral)
-                    break
+    # def collecting_gas_factory(self, vespene_factory_wrapper):
+    #     log.ingo(f'Distributing workers to gas factory successful {vespene_factory_wrapper.get_tag()}')
+    #     free_workers = self.unit_mgr.get_idle_workers()
+    #     for worker in free_workers:
+    #         worker.get_unit().gather(vespene_factory_wrapper.get_unit())
+    #         vespene_factory_wrapper.add_worker(worker)
 
-    async def organize_mining(self):
-        for mineral in self.mineral_wrappers_high:
-            nearest_scv = sorted( # get unit manager
-                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
+    def distribution_of_workers_to_minerals(self, mineral_wrapper_list: list):
+        for mineral in mineral_wrapper_list:
+            free_workers = self.unit_mgr.get_idle_workers()
+            nearest_scv = sorted(
+                free_workers,
                 key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
             for scv in nearest_scv:
                 if mineral.get_workers_amount() <= 1:
-                    print(f"{scv} Беру большой.")
                     mineral.add_worker(scv)
                     scv.mine(mineral)
                 else:
                     break
 
-        for mineral in self.mineral_wrappers_low:
-            nearest_scv = sorted(
-                [scv for scv in self.scv_wrappers if scv._state == State.IDLE],
-                key=lambda m: mineral.get_unit().distance_to(m.get_unit())
-            )
-            for scv in nearest_scv:
-                if mineral.get_workers_amount() < 1:
-                    print(f"{scv} Беру поменьше.")
-                    mineral.add_worker(scv)
-                    scv.mine(mineral)
-                else:
-                    break   
-        self.unit_mgr.on_call_worker_add(self.mineral_wrappers_low[-1].get_workers()[-1])
+    async def organize_mining(self):
+        """Назначает рабочих на минералы в зависимости от содержания в них 
+        минералов, а также устанавливает рабочего по умолчанию и передает 
+        его в Unit Manager. 
+
+        После этого производит сортировку по количеству рабочих на минералах
+        """
+
+        self.distribution_of_workers_to_minerals(self.mineral_wrappers_high)
+        self.distribution_of_workers_to_minerals(self.mineral_wrappers_low)
+
+        # Moving to unit manager
+        for wrapper in self.mineral_wrappers_total[::-1]:
+            if wrapper.get_workers_amount():
+                self.unit_mgr.on_call_worker_add(wrapper.get_workers()[-1])
+                break
+
+        # Moving to method of filling mineral wrapper
         self.mineral_wrappers_total = sorted(
             self.mineral_wrappers_total,
             key=lambda m: m.get_workers_amount()
         )
 
-        await self.idler_hunter()
-
-    def organize_vespene(self):
-        # постройка фабрики
-        if self.bot.can_afford(UnitTypeId.REFINERY):
-            get_worker = self.unit_mgr.worker_request()
-            location_gas = self.vespene_geysers_wrappers[0].get_unit()
-            self.build_mgr.gas_refine_build(get_worker, location_gas)
-        # заполнение
-
     async def control_mining(self):
-        await self.idler_hunter()
-
+        # Moving this to method of filling mineral wrapper
         mineral_workers_need_count = len(self.mineral_wrappers_total) * 2
-        vespene_workers_need_count = len(self.vespene_geysers_wrappers) * 3
-        all_collecting_workers = 0
+        collecting_mineral_workers = 0
 
         for mineral_wrappers in self.mineral_wrappers_total:
-            all_collecting_workers += mineral_wrappers.get_workers_amount()
-        for vespene_wrapper in self.vespene_geysers_wrappers:
-            all_collecting_workers += vespene_wrapper.get_workers_amount()
+            collecting_mineral_workers += mineral_wrappers.get_workers_amount()
 
-        resource_workers_needed = mineral_workers_need_count + vespene_workers_need_count
+        if collecting_mineral_workers < mineral_workers_need_count:
+            self.unit_mgr.make_workers()
 
-        if all_collecting_workers < mineral_workers_need_count:
-            self.unit_mgr.make_workers()
-        elif (all_collecting_workers == mineral_workers_need_count 
-                and not self.control):
-            self.unit_mgr.make_workers()
-            self.organize_vespene()
-            self.control = True
+        free_scv = self.unit_mgr.get_idle_workers()
+
+        if mineral_workers_need_count > collecting_mineral_workers:
+            while free_scv:
+                for mineral in self.mineral_wrappers_total:
+                    free_scv = self.unit_mgr.get_idle_workers()
+                    nearest_scv = sorted(
+                        free_scv,
+                        key=lambda m: mineral.get_unit().distance_to(m.get_unit())
+                    )
+                    for scv in nearest_scv:
+                        mineral.add_worker(scv)
+                        scv.mine(mineral)
+                        break
+        else:
+            self.organize_gas_mining()
 
     def update(self):
         pass

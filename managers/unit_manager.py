@@ -2,7 +2,9 @@ from sc2.data import Race
 
 from sc2.ids.unit_typeid import UnitTypeId
 
+
 from .base_manager import BaseManager
+
 
 from wrappers import SCV, Mineral
 
@@ -50,17 +52,14 @@ class UnitManager(BaseManager):
         elif self.my_race == Race.Zerg:
             pass
 
-        if (self.bot.can_afford(unit_type) 
-                and not len(self.townhalls[0].get_unit().orders)):
+        if (self.bot.can_afford(unit_type) and 
+                not len(self.townhalls[0].get_unit().orders)):
             self.townhalls[0].train_unit(unit_type)
 
     def worker_request(self):
-        free_worker_wrappers = list()
-        for get_wrapper in self.worker_wrappers:
-            if get_wrapper.get_state() == State.IDLE:
-                free_worker_wrappers.append(get_wrapper)
+        free_worker_wrappers = self.get_idle_workers()
         if free_worker_wrappers:
-            return free_worker_wrappers
+            return free_worker_wrappers[0]
         else:
             return self.on_call_worker
 
@@ -71,6 +70,16 @@ class UnitManager(BaseManager):
 
     def get_worker_wrappers_list(self):
         return self.worker_wrappers
+
+    def get_idle_workers(self) -> list:
+        """Method returning free worker wrappers list."""
+
+        free_workers = [
+            get_wrapper 
+            for get_wrapper in self.worker_wrappers
+            if get_wrapper.get_state() == State.IDLE
+        ]
+        return free_workers
 
     def update(self):
         pass

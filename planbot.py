@@ -34,8 +34,6 @@ class PlanBot(BaseBot):
             townhalls = self.building_mgr.get_townhalls_wrappers()
         )
 
-        self.building_mgr.get_unit_mgr(self.unit_manager)
-
         mine_expansion = self.expansion_locations_dict[self.start_location]
 
         self.mining_mgr = MiningManager(
@@ -45,6 +43,8 @@ class PlanBot(BaseBot):
             unit_manager = self.unit_manager,
             build_manager = self.building_mgr
         )
+
+        self.building_mgr.transer_managers(self.unit_manager, self.mining_mgr)
 
         await self.mining_mgr.organize_mining()
         
@@ -76,10 +76,9 @@ class PlanBot(BaseBot):
         """ 
         Юнит создан
         """
-        if unit.name == "SCV" or unit.name == "DRONE" or unit.name == "PROBE":
-            # self.mining_mgr.add_scv_unit(unit)
+        worker_unit_names = ["SCV", "DRONE", "PROBE"]
+        if unit.name.upper() in worker_unit_names:
             self.unit_manager.add_worker_unit(unit)
-        # print(f"UNIT GOT CREATED {unit}")
 
     async def on_unit_type_changed(self, unit, previous_type):
         """ 
@@ -91,7 +90,7 @@ class PlanBot(BaseBot):
         """
         Начата постройка.
         """
-        pass
+        self.building_mgr.make_building_wrapper(unit)
 
     async def on_building_construction_complete(self, unit):
         """
