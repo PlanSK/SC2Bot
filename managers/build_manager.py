@@ -20,7 +20,7 @@ class BuildingManager(BaseManager):
         self.townhalls = townhalls
         self.location = location
         self.make_townhall_wrappers()
-        self.gas_structures = list()
+        self.gas_structures = dict()
 
     def make_townhall_wrappers(self):
         self.command_center_wrappers = [
@@ -68,14 +68,11 @@ class BuildingManager(BaseManager):
 
     def add_vespene_factory(self, vespene_factory_unit):
         get_structure = VespeneFactory(tag = vespene_factory_unit.tag)
-        self.gas_structures.append(get_structure)
-        for geyser in self.mining_mgr.vespene_geysers_wrappers:
-            print(get_structure.get_unit().distance_to(self.bot.vespene_geyser.find_by_tag(geyser.get_tag())))
-            print(get_structure.get_unit().distance_to(geyser.get_unit()))
-
-            if not get_structure.get_unit().distance_to(self.bot.vespene_geyser.find_by_tag(geyser.get_tag())):
+        self.gas_structures[vespene_factory_unit.tag] = get_structure
+        for tag, geyser in self.mining_mgr.vespene_geysers_wrappers.items():
+            if not vespene_factory_unit.distance_to(self.bot.vespene_geyser.find_by_tag(tag)):
                 geyser.factory_id = vespene_factory_unit.tag
-                get_structure.geyser_id = geyser.get_tag()
+                get_structure.geyser_id = tag
                 log.info(f"Gas structure {get_structure.get_tag()} added in wrappers list")
                 break
             else:

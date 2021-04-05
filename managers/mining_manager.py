@@ -17,11 +17,10 @@ from wrappers.state import State
 
 
 class MiningManager(BaseManager):
-    def __init__(self, mining_expansion, location, worker_wrappers, unit_manager, build_manager, *args, **kwargs):
+    def __init__(self, mining_expansion, location, unit_manager, build_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.location = location
         self.mining_expansion = mining_expansion
-        self.scv_wrappers = worker_wrappers
         self.make_mineral_wrappers()
         self.make_vespene_wrappers()
         self.unit_mgr = unit_manager
@@ -53,13 +52,14 @@ class MiningManager(BaseManager):
         self.mineral_wrappers_total = self.mineral_wrappers_high + self.mineral_wrappers_low
     
     def make_vespene_wrappers(self):
-        self.vespene_geysers_wrappers = list()
         vespene = sorted(
             self.mining_expansion.vespene_geyser,
             key=lambda m: self.location.distance_to(m)
         )
-        for geyser in vespene:
-            self.vespene_geysers_wrappers.append(VespeneGeyser(tag = geyser.tag))
+        self.vespene_geysers_wrappers = {
+            geyser.tag: VespeneGeyser(tag = geyser.tag)
+            for geyser in vespene
+        }
 
     def organize_gas_mining(self):
         log.info(f'[GAS] Entering in gas mining organize method.')
@@ -70,7 +70,7 @@ class MiningManager(BaseManager):
             log.info('[GAS] Waiting to building gas structure')
         else:
             log.info('[GAS] Start of construction GAS build.')
-            for geyser in self.vespene_geysers_wrappers:
+            for geyser in self.vespene_geysers_wrappers.values():
                 self.build_mgr.build_vespene_refine(geyser)
                 break
 
@@ -85,7 +85,7 @@ class MiningManager(BaseManager):
         for mineral in mineral_wrapper_list:
             free_workers = self.unit_mgr.get_idle_workers()
             nearest_scv = sorted(
-                free_workers,
+                free_workers.values(),
                 key=lambda m: mineral.get_unit().distance_to(m.get_unit())
             )
             for scv in nearest_scv:
@@ -136,7 +136,7 @@ class MiningManager(BaseManager):
                 for mineral in self.mineral_wrappers_total:
                     free_scv = self.unit_mgr.get_idle_workers()
                     nearest_scv = sorted(
-                        free_scv,
+                        free_scv.values(),
                         key=lambda m: mineral.get_unit().distance_to(m.get_unit())
                     )
                     for scv in nearest_scv:

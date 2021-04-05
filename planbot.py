@@ -39,7 +39,6 @@ class PlanBot(BaseBot):
         self.mining_mgr = MiningManager(
             mining_expansion = mine_expansion, 
             location = self.start_location, 
-            worker_wrappers = self.unit_manager.get_worker_wrappers_list(),
             unit_manager = self.unit_manager,
             build_manager = self.building_mgr
         )
